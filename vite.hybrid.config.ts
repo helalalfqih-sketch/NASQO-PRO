@@ -19,7 +19,7 @@ const TARGET_DRIVE = path.resolve(rootDir, "src/services/googleDrive.ts");
 const TARGET_BRAND = path.resolve(rootDir, "src/utils/appBrand.ts");
 const TARGET_SMARTPRO = path.resolve(rootDir, "src/components/erp/SmartProControlScreen.tsx");
 
-function nasqoHybridIsolationPlugin(): Plugin {
+export function nasqoHybridIsolationPlugin(): Plugin {
   return {
     name: "nasqo-hybrid-isolation",
     enforce: "pre",

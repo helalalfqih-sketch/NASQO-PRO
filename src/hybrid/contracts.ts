@@ -174,6 +174,8 @@ export interface HybridWorkspaceSnapshot {
   activeRoute?: string;
   activeCurrency?: string;
   snapshotVersion?: number;
+  storageEngine?: string;
+  storageBytes?: number;
 }
 
 export interface HybridPrintPayload {

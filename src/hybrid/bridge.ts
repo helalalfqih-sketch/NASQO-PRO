@@ -185,7 +185,7 @@ export class NasqoHybridBridge {
     if (isFinancial && this.readOnlyFinancialMode) {
       throw new HybridBridgeError(
         "UNAUTHORIZED_ACTION",
-        "في هذه الدفعة تبقى العمليات المالية للقراءة والعرض فقط؛ الترحيل يتم حصريًا عبر Flutter وSQLite.",
+        "في هذه الدفعة تبقى العمليات المالية للقراءة والعرض فقط؛ الترحيل يتم حصريًا محليًا وSQLite.",
         false,
       );
     }
@@ -222,7 +222,7 @@ export class NasqoHybridBridge {
     if (!transport) {
       throw new HybridBridgeError(
         "SERVICE_UNAVAILABLE",
-        "جسر تطبيق Flutter غير متصل حاليًا؛ تعذر تنفيذ العملية.",
+        "جسر التطبيق المحلي غير متصل حاليًا؛ تعذر تنفيذ العملية.",
         true,
       );
     }
@@ -323,7 +323,7 @@ export class NasqoHybridBridge {
       entry.resolve(msg.data);
     } else {
       const errCode = msg.error?.code ?? "INTERNAL_ERROR";
-      const errMsg = msg.error?.message || "رفضت خدمة Flutter تنفيذ العملية.";
+      const errMsg = msg.error?.message || "رفضت الخدمة المحلية تنفيذ العملية.";
       entry.reject(new HybridBridgeError(errCode, errMsg, Boolean(msg.error?.retryable)));
     }
     return true;

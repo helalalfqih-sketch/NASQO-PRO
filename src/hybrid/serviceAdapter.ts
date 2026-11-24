@@ -127,7 +127,7 @@ export async function signInWithGoogle(): Promise<User> {
 }
 
 export async function connectGoogleDrive(): Promise<{ user: User; accessToken: string }> {
-  return runWithBrandLoader("جاري الاتصال بخدمة Google Drive عبر Flutter...", async () => {
+  return runWithBrandLoader("جاري الاتصال بخدمة Google Drive محليًا...", async () => {
     const res = await hybridBridge.invoke<
       "googleDriveAction",
       { connected?: boolean; email?: string; displayName?: string; accessToken?: string }
@@ -315,11 +315,11 @@ function defaultWorkspaceSettings(workspaceId = LOCAL_WORKSPACE_UID): WorkspaceS
 
 function buildStatsFromSnapshot(snap: HybridWorkspaceSnapshot): UnifiedDbStats {
   return {
-    engine: "Flutter Dart SQLite (Hybrid Bridge)",
+    engine: snap.storageEngine ?? "Flutter Dart SQLite (Hybrid Bridge)",
     dbName: `${snap.workspaceId || LOCAL_WORKSPACE_UID}.sqlite`,
     schemaVersion: snap.snapshotVersion ?? 1,
     tablesCount: 12,
-    fileSizeBytes: 0,
+    fileSizeBytes: snap.storageBytes ?? 0,
     accountsCount: snap.accounts.length,
     ledgerCount: snap.ledger.length,
     invoiceLinesCount: snap.ledger.reduce((acc, e) => acc + (e.lines?.length ?? 0), 0),
@@ -412,7 +412,7 @@ function mapBridgeError(err: unknown): Error {
     }
     return new Error(err.message);
   }
-  return err instanceof Error ? err : new Error("تعذر إتمام العملية عبر خدمة Flutter.");
+  return err instanceof Error ? err : new Error("تعذر إتمام العملية عبر الخدمة المحلية.");
 }
 
 export async function refreshWorkspaceFromServer(
@@ -461,7 +461,7 @@ export function subscribeWorkspace(uid: string, callbacks: WorkspaceCallbacks): 
     });
   } else {
     void refreshWorkspaceFromServer(uid).catch((err) => {
-      const normalized = err instanceof Error ? err : new Error("تعذر تحميل البيانات من Flutter.");
+      const normalized = err instanceof Error ? err : new Error("تعذر تحميل البيانات من التطبيق المحلي.");
       callbacks.onError?.(normalized);
     });
   }
@@ -1085,7 +1085,7 @@ export async function importInventoryItemsBatch(
   items: readonly (Partial<InventoryItemRecord> & { name: string; warehouseId?: string })[],
   options?: { mode?: "upsert" | "skip"; warehouseId?: string },
 ): Promise<{ inserted: number; updated: number; skipped: number; total: number }> {
-  return runWithBrandLoader("جاري استيراد الأصناف عبر Flutter...", async () => {
+  return runWithBrandLoader("جاري استيراد الأصناف محليًا...", async () => {
     try {
       const res = await hybridBridge.invoke<
         "importInventoryItems",
@@ -1255,7 +1255,7 @@ export async function createCloudBackupRecord(
     exportedAtIso: string;
   },
 ): Promise<string> {
-  return runWithBrandLoader("جاري إنشاء النسخة الاحتياطية عبر Flutter...", async () => {
+  return runWithBrandLoader("جاري إنشاء النسخة الاحتياطية محليًا...", async () => {
     try {
       const res = await hybridBridge.invoke<"backupWorkspace", { id?: string }>(
         "backupWorkspace",
@@ -1419,7 +1419,7 @@ export async function importSmartProSqlIntoServer(
   fileName: string,
   _replaceExisting = true,
 ) {
-  return runWithBrandLoader(`جاري استيراد ${fileName} عبر Flutter...`, async () => {
+  return runWithBrandLoader(`جاري استيراد ${fileName} محليًا...`, async () => {
     try {
       const base64Content = encodeBytesToBase64(new TextEncoder().encode(sqlText));
       const res = await hybridBridge.invoke<
@@ -1462,7 +1462,7 @@ export async function importSqliteLegacyIntoServer(
   _groupCategories?: Record<string, AccountCategory>,
   _replaceExisting?: boolean,
 ) {
-  return runWithBrandLoader(`جاري معالجة ${fileName} عبر Flutter...`, async () => {
+  return runWithBrandLoader(`جاري معالجة ${fileName} محليًا...`, async () => {
     try {
       const res = await hybridBridge.invoke<
         "restoreWorkspace",
@@ -1489,7 +1489,7 @@ export async function restoreJsonBackupIntoServer(
   uid: string,
   payload: Record<string, unknown>,
 ) {
-  return runWithBrandLoader("جاري استعادة النسخة الاحتياطية عبر Flutter...", async () => {
+  return runWithBrandLoader("جاري استعادة النسخة الاحتياطية محليًا...", async () => {
     try {
       const base64Content = encodeBytesToBase64(
         new TextEncoder().encode(JSON.stringify(payload)),
@@ -1546,7 +1546,7 @@ export async function rollbackLegacyLivePrefix(
 }
 
 export async function downloadUnifiedSqliteFile(uid = LOCAL_WORKSPACE_UID): Promise<void> {
-  return runWithBrandLoader("جاري تصدير النسخة الاحتياطية المحلية عبر Flutter...", async () => {
+  return runWithBrandLoader("جاري تصدير النسخة الاحتياطية المحلية محليًا...", async () => {
     try {
       await hybridBridge.invoke("backupWorkspace", {
         workspaceId: uid || LOCAL_WORKSPACE_UID,
