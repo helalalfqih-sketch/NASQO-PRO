@@ -1,0 +1,11 @@
+FROM node:24.12-alpine
+WORKDIR /app
+ENV NODE_ENV=production PORT=3000
+COPY package.json package-lock.json ./
+RUN npm install --omit=dev --no-audit --no-fund
+COPY server.ts ./
+COPY server ./server
+COPY scripts/backup-sqlite.mjs ./scripts/backup-sqlite.mjs
+COPY dist/client ./dist/client
+EXPOSE 3000
+CMD ["node", "server.ts"]

@@ -1,0 +1,20 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+
+# Private accounting backups and database files (never upload to GitHub)
+data/
+*.back
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite-journal
+*.sqlite3
+*.db
+*.dump
+
+# Deployment credentials are local only; never commit them
+.env
+.env.*
+!.env.example
