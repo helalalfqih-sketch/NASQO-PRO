@@ -221,11 +221,9 @@ export class NasqoHybridBridge {
 
     const transport = this.resolveTransport();
     if (!transport) {
-      throw new HybridBridgeError(
-        "SERVICE_UNAVAILABLE",
-        "جسر تطبيق Flutter غير متصل حاليًا؛ تعذر تنفيذ العملية.",
-        true,
-      );
+      const localRes = executeLocalOfflineRequest(validated.value);
+      setTimeout(() => this.handleInbound(localRes), 0);
+      return;
     }
 
     const timeoutMs =
