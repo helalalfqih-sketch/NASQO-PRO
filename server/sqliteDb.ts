@@ -1,8 +1,4 @@
-import crypto from "node:crypto";
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
-import { DatabaseSync, backup as sqliteBackup } from "node:sqlite";
+import { crypto, fs, os, path, DatabaseSync, sqliteBackup, runtime } from "./sqlitePlatform.ts";
 import {
   createDefaultErpData,
   createEmptyErpData,
@@ -66,24 +62,24 @@ let fallbackCloudRunDbPath = "";
 
 export function resolveSqliteDbPath(overridePath?: string): string {
   if (overridePath) return overridePath;
-  const envPath = process.env.NASQO_SQLITE_PATH?.trim();
+  const envPath = runtime.env.NASQO_SQLITE_PATH?.trim();
   if (envPath) return envPath;
   if (fallbackCloudRunDbPath && isManagedCloudRunPreview()) return fallbackCloudRunDbPath;
-  return path.resolve(process.cwd(), "data", "nasqo.sqlite");
+  return path.resolve(runtime.cwd(), "data", "nasqo.sqlite");
 }
 
 // A container filesystem is temporary. In production, SQLite must reside
 // on an explicitly mounted volume. Backups are separate files, not live DBs.
 function requireDurableSqlitePath(filePath: string): void {
-  if (process.env.NODE_ENV !== "production" || filePath === ":memory:") return;
+  if (runtime.env.NODE_ENV !== "production" || filePath === ":memory:") return;
   if (isManagedCloudRunPreview()) {
     console.warn("Managed Cloud Run preview detected; SQLite is using container storage at " + filePath);
     return;
   }
-  if (!process.env.NASQO_SQLITE_PATH || !path.isAbsolute(filePath)) {
+  if (!runtime.env.NASQO_SQLITE_PATH || !path.isAbsolute(filePath)) {
     throw new Error("Production SQLite requires an explicit absolute NASQO_SQLITE_PATH.");
   }
-  if (process.platform !== "linux" || !fs.existsSync("/proc/self/mountinfo")) return;
+  if (runtime.platform !== "linux" || !fs.existsSync("/proc/self/mountinfo")) return;
   const directory = path.dirname(path.resolve(filePath));
   const mounts = fs.readFileSync("/proc/self/mountinfo", "utf8")
     .split("\n")
@@ -105,6 +101,11 @@ function openAndInit(filePath: string): DatabaseSync {
     db.exec("PRAGMA journal_mode = WAL;");
     db.exec("PRAGMA synchronous = NORMAL;");
   }
+  return initializeSqliteSchema(db);
+}
+
+/** Shared schema and migrations for the server and the offline Android app. */
+export function initializeSqliteSchema(db: DatabaseSync): DatabaseSync {
   db.exec("PRAGMA busy_timeout = 5000;");
   db.exec("PRAGMA foreign_keys = ON;");
   db.exec(UNIFIED_SQLITE_DDL);
@@ -226,7 +227,7 @@ export function getSqliteDb(overridePath?: string): DatabaseSync {
     const code = (err as NodeJS.ErrnoException)?.code;
     if (
       !overridePath &&
-      !process.env.NASQO_SQLITE_PATH?.trim() &&
+      !runtime.env.NASQO_SQLITE_PATH?.trim() &&
       isManagedCloudRunPreview() &&
       (code === "EACCES" || code === "EROFS" || code === "EPERM")
     ) {
@@ -929,7 +930,7 @@ export function getDbStats(db: DatabaseSync, workspaceId: string) {
 
   return {
     engine: "SQLite (node:sqlite WAL)",
-    dbName: filePath === ":memory:" ? ":memory:" : path.relative(process.cwd(), filePath).replace(/\\/g, "/"),
+    dbName: filePath === ":memory:" ? ":memory:" : path.relative(runtime.cwd(), filePath).replace(/\\/g, "/"),
     schemaVersion: SQLITE_SCHEMA_V3,
     tablesCount: UNIFIED_SQLITE_TABLES.length,
     fileSizeBytes,
@@ -2070,7 +2071,7 @@ export function reverseLedgerEntryRow(
       String(existing.account_name),
       String(existing.counterpart_account_id ?? ""),
       String(existing.counterpart_account_name ?? ""),
-      existing.cashbox_id ?? null,
+      existing.cashbox_id == null ? null : Number(existing.cashbox_id),
       origKind,
       `عكس: ${String(existing.type_label ?? "")}`.slice(0, 60),
       String(existing.payment ?? "balance"),
@@ -2090,9 +2091,9 @@ export function reverseLedgerEntryRow(
       String(existing.invoice_content ?? "none"),
       Number(existing.entry_number ?? 1),
       reversalDate,
-      existing.due_date ?? null,
-      existing.expense_category ?? null,
-      existing.delivery_days ?? null,
+      existing.due_date == null ? null : String(existing.due_date),
+      existing.expense_category == null ? null : String(existing.expense_category),
+      existing.delivery_days == null ? null : Number(existing.delivery_days),
       origDocType === 2 ? 4 : origDocType === 3 ? 5 : origDocType === 4 ? 2 : origDocType === 5 ? 3 : origDocType,
       entryId,
       createdAtMs,
@@ -2114,8 +2115,8 @@ export function reverseLedgerEntryRow(
           workspaceId,
           revId,
           String(l.line_kind ?? "item"),
-          l.inventory_item_id ?? null,
-          l.warehouse_id ?? null,
+          l.inventory_item_id == null ? null : String(l.inventory_item_id),
+          l.warehouse_id == null ? null : String(l.warehouse_id),
           String(l.item_name ?? ""),
           Number(l.price ?? 0),
           Number(l.quantity ?? 0),

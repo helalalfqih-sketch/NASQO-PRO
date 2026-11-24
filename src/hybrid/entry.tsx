@@ -160,7 +160,7 @@ function HybridRootApp() {
       setBootError(
         err instanceof Error
           ? err.message
-          : "تعذر استلام البيانات الأولية من تطبيق Flutter المحلي.",
+          : "تعذر استلام البيانات الأولية من التطبيق المحلي.",
       );
       setBootState("error");
     }
@@ -236,7 +236,7 @@ function HybridRootApp() {
             user={hybridUser}
             cloudInitializationError=""
             onLocalSignOut={() => {
-              adapter.showMessage("النظام يعمل في الوضع المحلي المتكامل مع Flutter.", "info");
+              adapter.showMessage("النظام يعمل في الوضع المحلي المتكامل مع قاعدة البيانات المحلية.", "info");
             }}
             themeMode={themeMode}
             setThemeMode={handleSetThemeMode}

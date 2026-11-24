@@ -1,0 +1,43 @@
+name: Build Capacitor Android APK
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.12.0'
+          cache: npm
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install dependencies and Android SDK
+        run: |
+          npm ci --no-fund
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Verify accounting and runtime
+        run: |
+          npm run check:runtime
+          npm run lint
+          npm run test:capacitor
+          node --import tsx --test tests/unified-sqlite.test.ts tests/accounting-audit-25.test.ts
+      - name: Build APK
+        run: npm run android:debug
+      - name: Save debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: NasqoProERP-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14

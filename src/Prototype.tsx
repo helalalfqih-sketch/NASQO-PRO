@@ -2732,11 +2732,11 @@ export function AuthenticatedWorkspace({
                 })
                 .then((ok) => {
                   if (ok) {
-                    showToast(allCurrencies ? "تم إرسال PDF لجميع العملات إلى Flutter" : "تم إرسال PDF إلى خدمة الطباعة في Flutter");
+                    showToast(allCurrencies ? "تم فتح خيارات PDF لجميع العملات" : "تم فتح خيارات الطباعة وPDF");
                   }
                 })
                 .catch((err) => {
-                  showToast(err instanceof Error ? err.message : "تعذر تصدير PDF عبر Flutter");
+                  showToast(err instanceof Error ? err.message : "تعذر فتح خيارات PDF");
                 });
               return;
             }
