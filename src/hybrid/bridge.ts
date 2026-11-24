@@ -357,3 +357,10 @@ export class NasqoHybridBridge {
 }
 
 export const hybridBridge = new NasqoHybridBridge();
+hybridBridge.setTransport({
+  postMessage: (serializedJson: string) => {
+    const req = JSON.parse(serializedJson);
+    const res = executeLocalOfflineRequest(req);
+    setTimeout(() => hybridBridge.handleInbound(res), 0);
+  },
+});
