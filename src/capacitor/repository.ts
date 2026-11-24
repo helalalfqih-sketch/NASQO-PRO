@@ -13,6 +13,7 @@ export interface NativeDevice {
   saveFile(options: { filename: string; mimeType: string; base64Content: string }): Promise<unknown>;
   print(options: { title: string; html: string }): Promise<unknown>;
   showMessage(options: { message: string }): Promise<unknown>;
+  minimizeApp?(): Promise<unknown>;
 }
 
 const WORKSPACE = accounting.DEFAULT_WORKSPACE_ID;
@@ -227,7 +228,10 @@ export class CapacitorRepository {
       case "getInvoiceDetail": return accounting.fetchInvoiceDetail(this.db, WORKSPACE, p.entryId);
       case "getProductPriceStats": return accounting.getProductPriceStats(this.db, WORKSPACE, p.itemId);
       case "navigate": this.activeRoute = String(p.route || "home"); return { route: this.activeRoute };
-      case "goBack": this.activeRoute = String(p.currentRoute || "home"); return {};
+      case "goBack":
+        this.activeRoute = String(p.currentRoute || "home");
+        if (Number(p.stackDepth ?? 1) <= 1) await this.device.minimizeApp?.();
+        return {};
       case "openInvoice": case "openVoucher": case "openAccountStatement": return {};
       case "pickFile": return this.device.pickFile({ accept: p.accept });
       case "showMessage": return this.device.showMessage({ message: String(p.message ?? "") });

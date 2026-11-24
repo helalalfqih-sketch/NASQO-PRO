@@ -170,3 +170,15 @@ test("unsupported report printing fails explicitly and cannot print an unrelated
   }
   assert.equal(calls, 0);
 });
+
+test("native exit happens only after React reports an exhausted navigation stack", async () => {
+  let minimized = 0;
+  const repo = new CapacitorRepository(SQL, undefined, async () => {}, { ...native, minimizeApp: async () => { minimized++; } });
+  await repo.initialize();
+  await successful(repo, "navigate", { route: "accounts" });
+  assert.equal(minimized, 0);
+  await successful(repo, "goBack", { currentRoute: "accounts", stackDepth: 2 });
+  assert.equal(minimized, 0);
+  await successful(repo, "goBack", { currentRoute: "home", stackDepth: 1 });
+  assert.equal(minimized, 1);
+});

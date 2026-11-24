@@ -27,12 +27,19 @@ function initialize(): Promise<CapacitorRepository> {
       async bytes => {
         const saved = await storage.save({ data: encodeBase64(bytes), expectedRevision: revision });
         revision = saved.revision;
-      }, storage, send);
+      }, {
+        pickFile: options => storage.pickFile(options),
+        saveFile: options => storage.saveFile(options),
+        print: options => storage.print(options),
+        showMessage: options => storage.showMessage(options),
+        minimizeApp: () => App.minimizeApp(),
+      }, send);
     await repository.initialize();
     if (!backRegistered) {
       await App.addListener("backButton", () => {
-        if (repository.activeRoute === "home" || repository.activeRoute === "dashboard") void App.minimizeApp();
-        else send({ protocolVersion: HYBRID_PROTOCOL_VERSION, kind: "event", event: "backPressed", payload: {} } satisfies HybridHostEventEnvelope);
+        // React dismisses the current overlay or pops its stack first. Only its
+        // subsequent goBack request at stack depth one may minimize the app.
+        send({ protocolVersion: HYBRID_PROTOCOL_VERSION, kind: "event", event: "backPressed", payload: {} } satisfies HybridHostEventEnvelope);
       });
       backRegistered = true;
     }
