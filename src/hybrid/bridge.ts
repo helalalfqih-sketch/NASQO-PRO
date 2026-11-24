@@ -221,7 +221,7 @@ export class NasqoHybridBridge {
 
     const transport = this.resolveTransport();
     if (!transport) {
-      const localRes = executeLocalOfflineRequest(validated.value);
+      const localRes = executeLocalOfflineRequest(envelope);
       setTimeout(() => this.handleInbound(localRes), 0);
       return;
     }
