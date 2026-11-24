@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">NasqoProERP</string>
+    <string name="title_activity_main">NasqoProERP</string>
+    <string name="package_name">com.nasqo.proerp</string>
+    <string name="custom_url_scheme">com.nasqo.proerp</string>
+</resources>
